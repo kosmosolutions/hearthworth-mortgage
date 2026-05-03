@@ -295,6 +295,18 @@ body {
 .btn-outline-forest { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 9px; border: 1.5px solid rgba(255,255,255,0.3); background: transparent; color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .btn-outline-forest:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); color: var(--white); }
 
+/* ── TOOL TABS (Calculator page switcher) ── */
+.tool-tabs { display: flex; gap: 4px; padding: 6px; background: var(--white); border-radius: 14px; border: 1.5px solid var(--border); margin-bottom: 20px; }
+.tool-tab { flex: 1; padding: 11px 16px; border-radius: 10px; border: none; background: transparent; font-family: var(--fs); font-size: 13px; font-weight: 500; color: var(--stone); cursor: pointer; transition: all 0.18s; white-space: nowrap; text-align: center; }
+.tool-tab:hover { background: var(--cream); color: var(--charcoal); }
+.tool-tab.active { background: var(--forest); color: var(--white); font-weight: 600; box-shadow: 0 2px 8px rgba(26,46,26,0.25); }
+
+/* ── MID CTA SECTION ── */
+.mid-cta-section { background: linear-gradient(135deg, var(--forest) 0%, #2d4a2d 100%); padding: 80px 24px; text-align: center; }
+.mid-cta-inner { max-width: 640px; margin: 0 auto; }
+.mid-cta-title { font-family: var(--fd); font-size: clamp(28px, 5vw, 42px); font-weight: 700; color: var(--white); margin: 0 0 16px; line-height: 1.2; }
+.mid-cta-sub { font-size: 17px; color: rgba(255,255,255,0.7); line-height: 1.7; margin: 0 0 36px; }
+
 /* ── UTILS ── */
 select option { background: var(--white); }
 
@@ -375,6 +387,9 @@ select option { background: var(--white); }
   .calc-action-strip .btn-forest, .btn-outline-forest { width: 100%; justify-content: center; }
   .market-layout { grid-template-columns: 1fr; }
   .market-sidebar { margin-top: 0 !important; }
+  .tool-tabs { flex-wrap: wrap; }
+  .tool-tab { flex: none; width: calc(50% - 4px); }
+  .mid-cta-section { padding: 56px 16px; }
   /* Disable fixed background on mobile (iOS bug) */
   .page-body[style*="backgroundAttachment"] { background-attachment: scroll !important; }
 }

@@ -261,7 +261,7 @@ function TreasuryChartEmbed({ compact = false }) {
   if (loading) return <div style={{ height: h, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--stone)', fontFamily: 'var(--fm)', fontSize: 13 }}>Loading treasury data…</div>
 
   return (
-    <div style={{ marginTop: 40 }}>
+    <div style={{ marginTop: compact ? 0 : 40 }}>
       <div className="treasury-card">
         <div className="treasury-chart-header">
           <div>
@@ -419,6 +419,7 @@ function Nav({ page, setPage, onGetStarted }) {
         <span className="nav-brand-text">HearthWorth</span>
       </button>
       <div className={`nav-links${menuOpen ? ' open' : ''}`}>
+        <button className="nav-link" onClick={() => go('calculator')}>Calculator</button>
         <button className="nav-link" onClick={() => go('market')}>Market Data</button>
         <button className="nav-link" onClick={() => go('knowledge')}>Knowledge</button>
         <button className="nav-cta" onClick={() => { onGetStarted(); setMenuOpen(false) }}>Get Started →</button>
@@ -450,7 +451,7 @@ function HomePage({ onGetStarted, setPage }) {
         <div className="hero-bg"><img src={IMGS.hero} alt="Beautiful home" /></div>
         <div className="hero-overlay"></div>
         <div className="hero-inner">
-          <div className="fadein">
+          <div>
             <div className="hero-eyebrow"><span className="hero-dot"></span>Professional Mortgage Intelligence</div>
             <h1 className="hero-title">Make Smarter<br /><span>Home Financing</span><br />Decisions</h1>
             <p className="hero-sub">Institutional-grade mortgage analysis — compare loan products, model refinance scenarios, optimize payoff strategies, and track market rates. Built for homeowners who think like investors.</p>
@@ -471,17 +472,6 @@ function HomePage({ onGetStarted, setPage }) {
               <div className="stat-desc">{t} — {s}</div>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* GET STARTED STRIP */}
-      <section className="get-started-strip">
-        <div className="get-started-strip-inner">
-          <div>
-            <div className="get-started-strip-title">Ready to analyze your mortgage?</div>
-            <div className="get-started-strip-sub">Enter your loan details once — use every tool instantly.</div>
-          </div>
-          <button className="btn-gold" onClick={onGetStarted}>Get Started →</button>
         </div>
       </section>
 
@@ -535,7 +525,6 @@ function HomePage({ onGetStarted, setPage }) {
                 <li>Support for buydown rate paths (1-0, 2-1-0, 3-2-1)</li>
                 <li>ARM fixed vs. adjusted phase comparison</li>
               </ul>
-              <button className="btn-forest" onClick={onGetStarted}>Get Started →</button>
             </div>
           </div>
           <div className="showcase-row reverse fadein">
@@ -553,7 +542,6 @@ function HomePage({ onGetStarted, setPage }) {
                 <li>Lender credit and cash-out modeling</li>
                 <li>Investment opportunity: what if you invested the savings instead?</li>
               </ul>
-              <button className="btn-forest" onClick={onGetStarted}>Get Started →</button>
             </div>
           </div>
           <div className="showcase-row fadein">
@@ -573,6 +561,15 @@ function HomePage({ onGetStarted, setPage }) {
               <button className="btn-forest" onClick={() => { setPage('market'); window.scrollTo(0, 0) }}>View Market Data →</button>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* GET STARTED CTA */}
+      <section className="mid-cta-section">
+        <div className="mid-cta-inner">
+          <h2 className="mid-cta-title">Ready to Run the Numbers on Your Loan?</h2>
+          <p className="mid-cta-sub">Enter your mortgage details once and get instant access to the Calculator, Refi Analyzer, and Payoff Planner.</p>
+          <button className="btn-gold" onClick={onGetStarted} style={{ fontSize: 16, padding: '16px 36px' }}>Get Started — It's Free →</button>
         </div>
       </section>
 
@@ -600,18 +597,18 @@ function HomePage({ onGetStarted, setPage }) {
           <div style={{ textAlign: 'center', marginTop: 36 }}>
             <button className="btn-forest" onClick={() => { setPage('knowledge'); window.scrollTo(0, 0) }}>Visit the Knowledge Center →</button>
           </div>
-          <div style={{ textAlign: 'center', marginTop: 20 }}>
-            <button className="btn-gold" onClick={onGetStarted} style={{ fontSize: 16 }}>Get Started with Your Loan →</button>
-          </div>
         </div>
       </section>
 
       {/* CTA */}
       <section className="cta-section">
         <div className="cta-inner">
-          <h2 className="cta-title">Start Making Smarter Mortgage Decisions Today</h2>
-          <p className="cta-sub">Free, private, and built for homeowners who think like investors. No account required.</p>
-          <button className="btn-gold" onClick={onGetStarted}>Get Started →</button>
+          <h2 className="cta-title">Professional Mortgage Intelligence — Free</h2>
+          <p className="cta-sub">Runs entirely in your browser. No account, no data shared, no cost. Built for homeowners who think like investors.</p>
+          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button className="btn-gold" onClick={onGetStarted}>Get Started →</button>
+            <button className="btn-outline-white" onClick={() => { setPage('knowledge'); window.scrollTo(0,0) }}>Learn the Concepts</button>
+          </div>
         </div>
       </section>
     </div>
@@ -717,6 +714,7 @@ function KnowledgePage() {
 function CalculatorPage({ loan, setLoan, setPage }) {
   const [draft, setDraft] = useState({ ...loan })
   const [activeTab, setActiveTab] = useState("Overview")
+  const [toolTab, setToolTab] = useState('calculator')
   const isDirty = JSON.stringify(draft) !== JSON.stringify(loan)
   const setF = useCallback((f, v) => setDraft(d => ({ ...d, [f]: v })), [])
   const apply = () => setLoan({ ...draft })
@@ -768,7 +766,14 @@ function CalculatorPage({ loan, setLoan, setPage }) {
       <div className="page-body" style={{ position: 'relative', backgroundImage: `url(https://images.unsplash.com/photo-1449844908441-8829872d2607?w=1600&q=70)`, backgroundSize: 'cover', backgroundPosition: 'center 60%', backgroundAttachment: 'fixed' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(253,248,240,0.93)', backdropFilter: 'blur(1px)', zIndex: 0 }}></div>
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div className="app-wrap">
+          <div className="tool-tabs">
+            {[['calculator', 'Mortgage Calculator'], ['refi', 'Refi Analyzer'], ['payoff', 'Payoff Planner']].map(([t, l]) => (
+              <button key={t} className={`tool-tab${toolTab === t ? ' active' : ''}`} onClick={() => setToolTab(t)}>{l}</button>
+            ))}
+          </div>
+          {toolTab === 'refi' && <RefiContent loan={loan} />}
+          {toolTab === 'payoff' && <PayoffContent loan={loan} />}
+          {toolTab === 'calculator' && <div className="app-wrap">
             <div className="app-topbar">
               <div className="app-topbar-title">Mortgage Intelligence</div>
               <div className="topbar-metrics">
@@ -916,28 +921,15 @@ function CalculatorPage({ loan, setLoan, setPage }) {
                 </div>
               )}
             </div>
-          </div>
-          <div className="calc-action-strip">
-            <div className="calc-action-strip-label">Explore more tools with your loan data:</div>
-            <div className="calc-action-strip-btns">
-              <button className="btn-forest" onClick={() => { setPage('refi'); window.scrollTo(0, 0) }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 18l4-9 4 5 3-4 5 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                Refi Analyzer →
-              </button>
-              <button className="btn-outline-forest" onClick={() => { setPage('payoff'); window.scrollTo(0, 0) }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.5" strokeDasharray="30 50" strokeLinecap="round" transform="rotate(-90 12 12)" /><path d="M12 8v4l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-                Payoff Planner →
-              </button>
-            </div>
-          </div>
+          </div>}
         </div>
       </div>
     </div>
   )
 }
 
-// ── REFI PAGE ──
-function RefiPage({ loan }) {
+// ── REFI CONTENT (shared by RefiPage full-page and Calculator tab) ──
+function RefiContent({ loan }) {
   const [scenarios, setScenarios] = useState([])
   const [chartMode, setChartMode] = useState("balance")
   const prod = useMemo(() => PRODUCTS.find(p => p.id === loan.productId) || PRODUCTS[4], [loan.productId])
@@ -983,19 +975,6 @@ function RefiPage({ loan }) {
   ]
 
   return (
-    <div>
-      <div className="page-hero">
-        <img src={IMGS.refi} alt="Refi documents" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 25%' }} />
-        <div className="page-hero-overlay"></div>
-        <div className="page-hero-content">
-          <div className="showcase-badge fadein">Refi Scenario Analyzer</div>
-          <h1 className="page-hero-title fadein fadein-d1">Know Exactly When to Refinance</h1>
-          <p className="page-hero-sub fadein fadein-d2">Model any refinance scenario and see the true break-even and lifetime savings.</p>
-        </div>
-      </div>
-      <div className="page-body" style={{ position: 'relative', backgroundImage: `url(https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=70)`, backgroundSize: 'cover', backgroundPosition: 'center 50%', backgroundAttachment: 'fixed' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(253,248,240,0.92)', backdropFilter: 'blur(2px)', zIndex: 0 }}></div>
-        <div style={{ position: 'relative', zIndex: 1 }}>
           <div className="app-wrap">
             <div className="app-topbar">
               <div className="app-topbar-title">Refi Scenario Analyzer</div>
@@ -1128,14 +1107,32 @@ function RefiPage({ loan }) {
               </div>
             </div>
           </div>
+  )
+}
+
+// ── REFI PAGE (full page with hero) ──
+function RefiPage({ loan }) {
+  return (
+    <div>
+      <div className="page-hero">
+        <img src={IMGS.refi} alt="Refi documents" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 25%' }} />
+        <div className="page-hero-overlay"></div>
+        <div className="page-hero-content">
+          <div className="showcase-badge fadein">Refi Scenario Analyzer</div>
+          <h1 className="page-hero-title fadein fadein-d1">Know Exactly When to Refinance</h1>
+          <p className="page-hero-sub fadein fadein-d2">Model any refinance scenario and see the true break-even and lifetime savings.</p>
         </div>
+      </div>
+      <div className="page-body" style={{ position: 'relative', backgroundImage: `url(https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=70)`, backgroundSize: 'cover', backgroundPosition: 'center 50%', backgroundAttachment: 'fixed' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(253,248,240,0.92)', backdropFilter: 'blur(2px)', zIndex: 0 }}></div>
+        <div style={{ position: 'relative', zIndex: 1 }}><RefiContent loan={loan} /></div>
       </div>
     </div>
   )
 }
 
-// ── PAYOFF PAGE ──
-function PayoffPage({ loan }) {
+// ── PAYOFF CONTENT (shared by PayoffPage and Calculator tab) ──
+function PayoffContent({ loan }) {
   const [mode, setMode] = useState("extra")
   const [extra, setExtra] = useState(300)
   const [lump, setLump] = useState(10000)
@@ -1196,20 +1193,7 @@ function PayoffPage({ loan }) {
   const sp7 = extra ? Math.round(extra * ((Math.pow(1 + 0.07 / 12, (withExtra?.months || remainingMonths)) - 1) / (0.07 / 12))) : 0
 
   return (
-    <div>
-      <div className="page-hero">
-        <img src={IMGS.payoff} alt="Payoff planner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div className="page-hero-overlay"></div>
-        <div className="page-hero-content">
-          <div className="showcase-badge fadein">Payoff Planner</div>
-          <h1 className="page-hero-title fadein fadein-d1">Accelerate Your Path to Ownership</h1>
-          <p className="page-hero-sub fadein fadein-d2">Explore extra payments, lump sums, and see how they compare to investing.</p>
-        </div>
-      </div>
-      <div className="page-body" style={{ position: 'relative', backgroundImage: `url(https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1600&q=70)`, backgroundSize: 'cover', backgroundPosition: 'center 50%', backgroundAttachment: 'fixed' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(253,248,240,0.93)', backdropFilter: 'blur(1px)', zIndex: 0 }}></div>
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div className="app-wrap">
+    <div className="app-wrap">
             <div className="app-topbar">
               <div className="app-topbar-title">Payoff Planner</div>
               <div className="topbar-metrics">
@@ -1326,8 +1310,26 @@ function PayoffPage({ loan }) {
                 </div>
               </div>
             </div>
-          </div>
+    </div>
+  )
+}
+
+// ── PAYOFF PAGE (full page wrapper) ──
+function PayoffPage({ loan }) {
+  return (
+    <div>
+      <div className="page-hero">
+        <img src={IMGS.payoff} alt="Payoff planner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div className="page-hero-overlay"></div>
+        <div className="page-hero-content">
+          <div className="showcase-badge fadein">Payoff Planner</div>
+          <h1 className="page-hero-title fadein fadein-d1">Accelerate Your Path to Ownership</h1>
+          <p className="page-hero-sub fadein fadein-d2">Explore extra payments, lump sums, and see how they compare to investing.</p>
         </div>
+      </div>
+      <div className="page-body" style={{ position: 'relative', backgroundImage: `url(https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1600&q=70)`, backgroundSize: 'cover', backgroundPosition: 'center 50%', backgroundAttachment: 'fixed' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(253,248,240,0.93)', backdropFilter: 'blur(1px)', zIndex: 0 }}></div>
+        <div style={{ position: 'relative', zIndex: 1 }}><PayoffContent loan={loan} /></div>
       </div>
     </div>
   )

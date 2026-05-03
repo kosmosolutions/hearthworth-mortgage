@@ -324,7 +324,7 @@ function LoanSetupModal({ loan, onClose, onSubmit }) {
           <div>
             <div className="showcase-badge" style={{ marginBottom: 8 }}>Set Up Your Loan</div>
             <h2 className="modal-title">Enter Your Mortgage Details</h2>
-            <p className="modal-sub">Used across all tools — Calculator, Refi Analyzer, and Payoff Planner.</p>
+            <p className="modal-sub">Used across all tools — Loan Analyzer, Refi Analyzer, and Payoff Planner.</p>
           </div>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
@@ -393,7 +393,7 @@ function LoanSetupModal({ loan, onClose, onSubmit }) {
           </div>
         </div>
         <div className="modal-footer">
-          <button className="btn-forest" onClick={() => { onSubmit(draft); onClose() }}>Save & Open Calculator →</button>
+          <button className="btn-forest" onClick={() => { onSubmit(draft); onClose() }}>Save & Open Loan Analyzer →</button>
         </div>
       </div>
     </div>
@@ -416,10 +416,13 @@ function Nav({ page, setPage, onGetStarted }) {
     <nav className={cls}>
       <button className="nav-brand" onClick={() => go('home')}>
         <div className="nav-logo">⌂</div>
-        <span className="nav-brand-text">HearthWorth</span>
+        <div className="nav-brand-group">
+          <span className="nav-brand-text">HearthWorth</span>
+          <span className="nav-brand-sub">Mortgage Intelligence</span>
+        </div>
       </button>
       <div className={`nav-links${menuOpen ? ' open' : ''}`}>
-        <button className="nav-link" onClick={() => go('calculator')}>Calculator</button>
+        <button className="nav-link" onClick={() => go('calculator')}>Loan Analyzer</button>
         <button className="nav-link" onClick={() => go('market')}>Market Data</button>
         <button className="nav-link" onClick={() => go('knowledge')}>Knowledge</button>
         <button className="nav-cta" onClick={() => { onGetStarted(); setMenuOpen(false) }}>Get Started →</button>
@@ -486,7 +489,7 @@ function HomePage({ onGetStarted, setPage }) {
               <div className="feature-tile-img green">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#c9a84c" strokeWidth="1.5" /><path d="M7 8h10M7 12h6M7 16h4" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" /><circle cx="17" cy="15" r="2" stroke="#c9a84c" strokeWidth="1.5" /></svg>
               </div>
-              <div className="feature-tile-title">Mortgage Calculator</div>
+              <div className="feature-tile-title">Loan Analyzer</div>
               <div className="feature-tile-desc">Enter your loan details and instantly see payment breakdowns, amortization schedules, and equity projections across 30+ loan products including ARM, FHA, VA, USDA and Jumbo.</div>
             </div>
             <div className="feature-tile fadein fadein-d2">
@@ -516,7 +519,7 @@ function HomePage({ onGetStarted, setPage }) {
               <div className="showcase-img-overlay"></div>
             </div>
             <div>
-              <div className="showcase-badge">Mortgage Calculator</div>
+              <div className="showcase-badge">Loan Analyzer</div>
               <h3 className="showcase-title">Model Any Loan Product With Precision</h3>
               <p className="showcase-body">Choose from 30+ loan products and see complete payment schedules, phase-by-phase breakdowns for buydowns and ARMs, and dynamic PMI tracking that shows exactly when it drops off.</p>
               <ul className="showcase-list">
@@ -568,7 +571,7 @@ function HomePage({ onGetStarted, setPage }) {
       <section className="mid-cta-section">
         <div className="mid-cta-inner">
           <h2 className="mid-cta-title">Ready to Run the Numbers on Your Loan?</h2>
-          <p className="mid-cta-sub">Enter your mortgage details once and get instant access to the Calculator, Refi Analyzer, and Payoff Planner.</p>
+          <p className="mid-cta-sub">Enter your mortgage details once and get instant access to the Loan Analyzer, Refi Analyzer, and Payoff Planner.</p>
           <button className="btn-gold" onClick={onGetStarted} style={{ fontSize: 16, padding: '16px 36px' }}>Get Started — It's Free →</button>
         </div>
       </section>
@@ -758,7 +761,7 @@ function CalculatorPage({ loan, setLoan, setPage }) {
         <img src={IMGS.calc} alt="Calculator" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
         <div className="page-hero-overlay"></div>
         <div className="page-hero-content">
-          <div className="showcase-badge fadein">Mortgage Calculator</div>
+          <div className="showcase-badge fadein">Loan Analyzer</div>
           <h1 className="page-hero-title fadein fadein-d1">Analyze Your Loan in Detail</h1>
           <p className="page-hero-sub fadein fadein-d2">Enter your loan details and get a complete financial picture.</p>
         </div>
@@ -767,7 +770,7 @@ function CalculatorPage({ loan, setLoan, setPage }) {
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(253,248,240,0.93)', backdropFilter: 'blur(1px)', zIndex: 0 }}></div>
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div className="tool-tabs">
-            {[['calculator', 'Mortgage Calculator'], ['refi', 'Refi Analyzer'], ['payoff', 'Payoff Planner']].map(([t, l]) => (
+            {[['calculator', 'Loan Analyzer'], ['refi', 'Refi Analyzer'], ['payoff', 'Payoff Planner']].map(([t, l]) => (
               <button key={t} className={`tool-tab${toolTab === t ? ' active' : ''}`} onClick={() => setToolTab(t)}>{l}</button>
             ))}
           </div>
@@ -1350,7 +1353,7 @@ function Footer({ setPage }) {
           </div>
           <div>
             <div className="footer-col-title">Platform</div>
-            {[["calculator", "Mortgage Calculator"], ["refi", "Refi Analyzer"], ["payoff", "Payoff Planner"], ["market", "Market Data"]].map(([p, l]) => <button key={p} className="footer-link" onClick={() => { setPage(p); window.scrollTo(0, 0) }}>{l}</button>)}
+            {[["calculator", "Loan Analyzer"], ["refi", "Refi Analyzer"], ["payoff", "Payoff Planner"], ["market", "Market Data"]].map(([p, l]) => <button key={p} className="footer-link" onClick={() => { setPage(p); window.scrollTo(0, 0) }}>{l}</button>)}
           </div>
           <div>
             <div className="footer-col-title">Resources</div>

@@ -410,7 +410,7 @@ function Nav({ page, setPage, onGetStarted }) {
     return () => window.removeEventListener('scroll', h)
   }, [])
   const isHome = page === 'home'
-  const cls = `nav${isHome && !scrolled ? ' hero' : scrolled ? ' scrolled' : ''}${menuOpen ? ' menu-open' : ''}`
+  const cls = `nav${isHome && !scrolled ? ' over-hero' : scrolled ? ' scrolled' : ''}${menuOpen ? ' menu-open' : ''}`
   const go = p => { setPage(p); window.scrollTo(0, 0); setMenuOpen(false) }
   return (
     <nav className={cls}>

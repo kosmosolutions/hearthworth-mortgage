@@ -300,36 +300,140 @@ function TreasuryChartEmbed({ compact = false }) {
   )
 }
 
-// ── NAV ──
-function Nav({ page, setPage, loan }) {
-  const [scrolled, setScrolled] = useState(false)
+// ── LOAN SETUP MODAL ──
+function LoanSetupModal({ loan, onClose, onSubmit }) {
+  const [draft, setDraft] = useState({ ...loan })
+  const setF = useCallback((f, v) => setDraft(d => ({ ...d, [f]: v })), [])
+  const draftLTV = draft.homeValue > 0 ? draft.loanBalance / draft.homeValue : 0
+  const draftLtvOk = draftLTV <= 0.8
+  const autoPMI = computePMI(draft.loanBalance, draft.homeValue)
+  const prod = PRODUCTS.find(p => p.id === draft.productId) || PRODUCTS[4]
+  const pmt = mpmt(draft.loanBalance, draft.permRate, prod.term)
+  const pmi = draft.pmiOverride ? draft.monthlyPMI : autoPMI
+  const total = pmt + draft.monthlyTaxes + pmi + draft.monthlyInsurance
+
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 60)
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div>
+            <div className="showcase-badge" style={{ marginBottom: 8 }}>Set Up Your Loan</div>
+            <h2 className="modal-title">Enter Your Mortgage Details</h2>
+            <p className="modal-sub">Used across all tools — Calculator, Refi Analyzer, and Payoff Planner.</p>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="modal-grid">
+            <div>
+              <div className="card-label" style={{ marginBottom: 12 }}>Loan Details</div>
+              <div className="input-wrap">
+                <label className="input-label">Loan Product</label>
+                <div className="input-inner">
+                  <select value={draft.productId} onChange={e => setF("productId", e.target.value)}>
+                    {PRODUCT_GROUPS.map(g => <optgroup key={g.group} label={g.group}>{g.products.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</optgroup>)}
+                  </select>
+                </div>
+              </div>
+              <div className="input-wrap">
+                <label className="input-label">Loan Start Date</label>
+                <div className="input-inner"><input type="month" value={draft.loanStartDate || ""} onChange={e => setF("loanStartDate", e.target.value)} style={{ colorScheme: 'light' }} /></div>
+              </div>
+              <DcInput label="Loan Balance" value={draft.loanBalance} onChange={v => setF("loanBalance", v)} pre="$" step={1000} />
+              <DcInput label="Home Value" value={draft.homeValue} onChange={v => setF("homeValue", v)} pre="$" step={1000} />
+              <DcInput label="Interest Rate" value={draft.permRate} onChange={v => setF("permRate", v)} suf="%" step={0.125} />
+              {(() => {
+                const p = PRODUCTS.find(x => x.id === draft.productId)
+                if (!p || !p.phases?.length) return null
+                const nr = Number(draft.permRate || 5.5)
+                const isArm = p.armAdj != null
+                const path = isArm
+                  ? `Fixed ${p.phases[0].months / 12}yr @ ${nr.toFixed(2)}% → ${(nr + (p.armAdj || 2)).toFixed(2)}%`
+                  : [...p.phases.map((ph, i) => `Yr${i + 1}: ${(nr + ph.offset).toFixed(2)}%`), `Yr${p.phases.length + 1}+: ${nr.toFixed(2)}%`].join(' → ')
+                return <div style={{ background: isArm ? '#fef9e8' : '#e8f5e8', border: `1px solid ${isArm ? '#f0e090' : '#b8ddb8'}`, borderRadius: 8, padding: '10px 12px', fontSize: 11, fontFamily: 'var(--fm)', color: isArm ? '#7a6010' : '#1a5c2a', lineHeight: 1.7, marginBottom: 8 }}>{path}</div>
+              })()}
+            </div>
+            <div>
+              <div className="card-label" style={{ marginBottom: 12 }}>Monthly PITI</div>
+              <DcInput label="Property Tax /mo" value={draft.monthlyTaxes} onChange={v => setF("monthlyTaxes", v)} pre="$" step={10} />
+              <div className="input-wrap">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                  <label className="input-label" style={{ margin: 0 }}>PMI <span style={{ color: draftLtvOk ? '#1a5c2a' : '#8b1a1a' }}>(LTV {(draftLTV * 100).toFixed(1)}%)</span></label>
+                  <button onClick={() => setF("pmiOverride", !draft.pmiOverride)} style={{ fontSize: 9, padding: '2px 7px', background: 'var(--cream)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--stone)', cursor: 'pointer', fontFamily: 'var(--fm)' }}>{draft.pmiOverride ? "Auto" : "Override"}</button>
+                </div>
+                {draft.pmiOverride
+                  ? <div className="input-inner"><span className="input-pre">$</span><input type="number" value={draft.monthlyPMI || 0} step={10} min={0} onChange={e => setF("monthlyPMI", parseFloat(e.target.value) || 0)} /></div>
+                  : (
+                    <div style={{ background: 'var(--cream)', borderRadius: 8, padding: '9px 12px', border: `1px solid ${draftLtvOk ? '#b8ddb8' : '#f0e090'}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'var(--fm)', fontSize: 13, fontWeight: 700, color: draftLtvOk ? '#1a5c2a' : '#7a6010' }}>{autoPMI === 0 ? "$0 — PMI Waived" : fmt(autoPMI) + "/mo"}</span>
+                        <span style={{ fontSize: 10, color: 'var(--stone-light)', fontFamily: 'var(--fm)' }}>auto</span>
+                      </div>
+                    </div>
+                  )}
+              </div>
+              <DcInput label="Insurance /mo" value={draft.monthlyInsurance} onChange={v => setF("monthlyInsurance", v)} pre="$" step={10} />
+              <div style={{ background: 'var(--cream)', borderRadius: 10, padding: 14, marginTop: 12, border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--stone)', fontFamily: 'var(--fm)', marginBottom: 10 }}>Estimated Monthly PITI</div>
+                {[["P&I", fmt(pmt)], ["Taxes", fmt(draft.monthlyTaxes)], ["PMI", fmt(pmi)], ["Insurance", fmt(draft.monthlyInsurance)]].map(([k, v]) => (
+                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 12, fontFamily: 'var(--fm)' }}>
+                    <span style={{ color: 'var(--stone)' }}>{k}</span><span style={{ color: 'var(--charcoal)' }}>{v}</span>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8, fontSize: 14, fontWeight: 700, fontFamily: 'var(--fm)' }}>
+                  <span style={{ color: 'var(--forest)' }}>Total PITI</span><span style={{ color: 'var(--forest)' }}>{fmt(total)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn-forest" onClick={() => { onSubmit(draft); onClose() }}>Save & Open Calculator →</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── NAV ──
+function Nav({ page, setPage, onGetStarted }) {
+  const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  useEffect(() => {
+    const h = () => { setScrolled(window.scrollY > 60); if (window.scrollY > 60) setMenuOpen(false) }
     window.addEventListener('scroll', h, { passive: true })
     return () => window.removeEventListener('scroll', h)
   }, [])
   const isHome = page === 'home'
-  const cls = `nav${isHome && !scrolled ? ' hero' : scrolled ? ' scrolled' : ''}`
+  const cls = `nav${isHome && !scrolled ? ' hero' : scrolled ? ' scrolled' : ''}${menuOpen ? ' menu-open' : ''}`
+  const go = p => { setPage(p); window.scrollTo(0, 0); setMenuOpen(false) }
   return (
     <nav className={cls}>
-      <button className="nav-brand" onClick={() => { setPage('home'); window.scrollTo(0, 0) }}>
+      <button className="nav-brand" onClick={() => go('home')}>
         <div className="nav-logo">⌂</div>
         <span className="nav-brand-text">HearthWorth</span>
       </button>
-      <div className="nav-links">
-        <button className="nav-link" onClick={() => { setPage('calculator'); window.scrollTo(0, 0) }}>Calculator</button>
-        <button className="nav-link" onClick={() => { setPage('refi'); window.scrollTo(0, 0) }}>Refi Analyzer</button>
-        <button className="nav-link" onClick={() => { setPage('payoff'); window.scrollTo(0, 0) }}>Payoff Planner</button>
-        <button className="nav-link" onClick={() => { setPage('market'); window.scrollTo(0, 0) }}>Market Data</button>
-        <button className="nav-link" onClick={() => { setPage('knowledge'); window.scrollTo(0, 0) }}>Knowledge</button>
-        <button className="nav-cta" onClick={() => { setPage('calculator'); window.scrollTo(0, 0) }}>Launch App →</button>
+      <div className={`nav-links${menuOpen ? ' open' : ''}`}>
+        <button className="nav-link" onClick={() => go('market')}>Market Data</button>
+        <button className="nav-link" onClick={() => go('knowledge')}>Knowledge</button>
+        <button className="nav-cta" onClick={() => { onGetStarted(); setMenuOpen(false) }}>Get Started →</button>
       </div>
+      <button className="nav-hamburger" onClick={() => setMenuOpen(m => !m)} aria-label="Toggle menu">
+        <span className={menuOpen ? 'open' : ''}></span>
+        <span className={menuOpen ? 'open' : ''}></span>
+        <span className={menuOpen ? 'open' : ''}></span>
+      </button>
     </nav>
   )
 }
 
 // ── HOME PAGE ──
-function HomePage({ setPage, loan, setLoan }) {
+function HomePage({ onGetStarted, setPage }) {
   const [openFaq, setOpenFaq] = useState(null)
   const faqs = [
     { q: "How does HearthWorth calculate my mortgage payment?", a: "HearthWorth uses the standard amortization formula M = P × [r(1+r)ⁿ] / [(1+r)ⁿ − 1] where P is principal, r is monthly rate, and n is term in months. All calculations run entirely in your browser — no data is sent to any server." },
@@ -351,7 +455,7 @@ function HomePage({ setPage, loan, setLoan }) {
             <h1 className="hero-title">Make Smarter<br /><span>Home Financing</span><br />Decisions</h1>
             <p className="hero-sub">Institutional-grade mortgage analysis — compare loan products, model refinance scenarios, optimize payoff strategies, and track market rates. Built for homeowners who think like investors.</p>
             <div className="hero-actions">
-              <button className="btn-gold" onClick={() => { setPage('calculator'); window.scrollTo(0, 0) }}>Open Calculator →</button>
+              <button className="btn-gold" onClick={onGetStarted}>Get Started →</button>
               <button className="btn-outline-white" onClick={() => { setPage('market'); window.scrollTo(0, 0) }}>View Market Data</button>
             </div>
           </div>
@@ -370,6 +474,17 @@ function HomePage({ setPage, loan, setLoan }) {
         </div>
       </section>
 
+      {/* GET STARTED STRIP */}
+      <section className="get-started-strip">
+        <div className="get-started-strip-inner">
+          <div>
+            <div className="get-started-strip-title">Ready to analyze your mortgage?</div>
+            <div className="get-started-strip-sub">Enter your loan details once — use every tool instantly.</div>
+          </div>
+          <button className="btn-gold" onClick={onGetStarted}>Get Started →</button>
+        </div>
+      </section>
+
       {/* FEATURES STRIP */}
       <section className="features-strip">
         <div className="features-strip-inner">
@@ -377,30 +492,27 @@ function HomePage({ setPage, loan, setLoan }) {
           <h2 className="section-title fadein fadein-d1">Everything You Need to Own<br />Your Mortgage Decision</h2>
           <p className="section-sub fadein fadein-d2">From initial purchase to refinance planning — HearthWorth covers every scenario with precision math and clear visualizations.</p>
           <div className="features-3grid">
-            <button className="feature-tile fadein fadein-d1" onClick={() => { setPage('calculator'); window.scrollTo(0, 0) }}>
+            <div className="feature-tile fadein fadein-d1">
               <div className="feature-tile-img green">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#c9a84c" strokeWidth="1.5" /><path d="M7 8h10M7 12h6M7 16h4" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" /><circle cx="17" cy="15" r="2" stroke="#c9a84c" strokeWidth="1.5" /></svg>
               </div>
               <div className="feature-tile-title">Mortgage Calculator</div>
               <div className="feature-tile-desc">Enter your loan details and instantly see payment breakdowns, amortization schedules, and equity projections across 30+ loan products including ARM, FHA, VA, USDA and Jumbo.</div>
-              <div className="feature-tile-link">Explore Calculator <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></div>
-            </button>
-            <button className="feature-tile fadein fadein-d2" onClick={() => { setPage('refi'); window.scrollTo(0, 0) }}>
+            </div>
+            <div className="feature-tile fadein fadein-d2">
               <div className="feature-tile-img gold">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 18l4-9 4 5 3-4 5 8" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M16 5h4M18 3v4" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" /></svg>
               </div>
               <div className="feature-tile-title">Refi Scenario Analyzer</div>
               <div className="feature-tile-desc">Model unlimited refinance scenarios with real closing costs, lender credits, break-even analysis, and true lifetime savings calculations. Instantly see "Worth It" verdicts.</div>
-              <div className="feature-tile-link">Analyze Scenarios <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></div>
-            </button>
-            <button className="feature-tile fadein fadein-d3" onClick={() => { setPage('payoff'); window.scrollTo(0, 0) }}>
+            </div>
+            <div className="feature-tile fadein fadein-d3">
               <div className="feature-tile-img blue">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#c9a84c" strokeWidth="1.5" opacity="0.25" /><circle cx="12" cy="12" r="8" stroke="#c9a84c" strokeWidth="1.5" strokeDasharray="30 50" strokeLinecap="round" transform="rotate(-90 12 12)" /><path d="M12 8v4l2.5 2.5" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </div>
               <div className="feature-tile-title">Payoff Planner</div>
               <div className="feature-tile-desc">Set a target payoff date or explore the impact of extra monthly payments and lump-sum contributions. Compare paying off your mortgage against investing in equities.</div>
-              <div className="feature-tile-link">Plan Payoff <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></div>
-            </button>
+            </div>
           </div>
         </div>
       </section>
@@ -423,7 +535,7 @@ function HomePage({ setPage, loan, setLoan }) {
                 <li>Support for buydown rate paths (1-0, 2-1-0, 3-2-1)</li>
                 <li>ARM fixed vs. adjusted phase comparison</li>
               </ul>
-              <button className="btn-forest" onClick={() => { setPage('calculator'); window.scrollTo(0, 0) }}>Open Calculator →</button>
+              <button className="btn-forest" onClick={onGetStarted}>Get Started →</button>
             </div>
           </div>
           <div className="showcase-row reverse fadein">
@@ -441,7 +553,7 @@ function HomePage({ setPage, loan, setLoan }) {
                 <li>Lender credit and cash-out modeling</li>
                 <li>Investment opportunity: what if you invested the savings instead?</li>
               </ul>
-              <button className="btn-forest" onClick={() => { setPage('refi'); window.scrollTo(0, 0) }}>Analyze Now →</button>
+              <button className="btn-forest" onClick={onGetStarted}>Get Started →</button>
             </div>
           </div>
           <div className="showcase-row fadein">
@@ -488,6 +600,9 @@ function HomePage({ setPage, loan, setLoan }) {
           <div style={{ textAlign: 'center', marginTop: 36 }}>
             <button className="btn-forest" onClick={() => { setPage('knowledge'); window.scrollTo(0, 0) }}>Visit the Knowledge Center →</button>
           </div>
+          <div style={{ textAlign: 'center', marginTop: 20 }}>
+            <button className="btn-gold" onClick={onGetStarted} style={{ fontSize: 16 }}>Get Started with Your Loan →</button>
+          </div>
         </div>
       </section>
 
@@ -496,7 +611,7 @@ function HomePage({ setPage, loan, setLoan }) {
         <div className="cta-inner">
           <h2 className="cta-title">Start Making Smarter Mortgage Decisions Today</h2>
           <p className="cta-sub">Free, private, and built for homeowners who think like investors. No account required.</p>
-          <button className="btn-gold" onClick={() => { setPage('calculator'); window.scrollTo(0, 0) }}>Open the Dashboard →</button>
+          <button className="btn-gold" onClick={onGetStarted}>Get Started →</button>
         </div>
       </section>
     </div>
@@ -599,7 +714,7 @@ function KnowledgePage() {
 }
 
 // ── CALCULATOR PAGE ──
-function CalculatorPage({ loan, setLoan }) {
+function CalculatorPage({ loan, setLoan, setPage }) {
   const [draft, setDraft] = useState({ ...loan })
   const [activeTab, setActiveTab] = useState("Overview")
   const isDirty = JSON.stringify(draft) !== JSON.stringify(loan)
@@ -800,6 +915,19 @@ function CalculatorPage({ loan, setLoan }) {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+          <div className="calc-action-strip">
+            <div className="calc-action-strip-label">Explore more tools with your loan data:</div>
+            <div className="calc-action-strip-btns">
+              <button className="btn-forest" onClick={() => { setPage('refi'); window.scrollTo(0, 0) }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 18l4-9 4 5 3-4 5 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                Refi Analyzer →
+              </button>
+              <button className="btn-outline-forest" onClick={() => { setPage('payoff'); window.scrollTo(0, 0) }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.5" strokeDasharray="30 50" strokeLinecap="round" transform="rotate(-90 12 12)" /><path d="M12 8v4l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+                Payoff Planner →
+              </button>
             </div>
           </div>
         </div>
@@ -1246,6 +1374,15 @@ function Footer({ setPage }) {
 export default function MortgageDashboard() {
   const [page, setPage] = useState('home')
   const [loan, setLoan] = useState(defaultLoan)
+  const [showModal, setShowModal] = useState(false)
+
+  const openModal = useCallback(() => setShowModal(true), [])
+  const closeModal = useCallback(() => setShowModal(false), [])
+  const handleModalSubmit = useCallback(draft => {
+    setLoan(draft)
+    setPage('calculator')
+    window.scrollTo(0, 0)
+  }, [])
 
   useEffect(() => {
     const els = document.querySelectorAll('.fadein')
@@ -1257,11 +1394,12 @@ export default function MortgageDashboard() {
   }, [page])
 
   return (
-    <div>
-      <Nav page={page} setPage={setPage} loan={loan} />
+    <div className="page-transition">
+      {showModal && <LoanSetupModal loan={loan} onClose={closeModal} onSubmit={handleModalSubmit} />}
+      <Nav page={page} setPage={setPage} onGetStarted={openModal} />
       <div style={{ paddingTop: page === 'home' ? '0' : '68px' }}>
-        {page === 'home'       && <HomePage setPage={setPage} loan={loan} setLoan={setLoan} />}
-        {page === 'calculator' && <CalculatorPage loan={loan} setLoan={setLoan} />}
+        {page === 'home'       && <HomePage onGetStarted={openModal} setPage={setPage} />}
+        {page === 'calculator' && <CalculatorPage loan={loan} setLoan={setLoan} setPage={setPage} />}
         {page === 'refi'       && <RefiPage loan={loan} />}
         {page === 'payoff'     && <PayoffPage loan={loan} />}
         {page === 'market'     && <MarketPage />}

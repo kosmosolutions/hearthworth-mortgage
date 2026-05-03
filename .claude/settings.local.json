@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:api.anthropic.com)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(git push *)",
+      "mcp__696db54e-bac7-4dd8-b6d0-e7cefe9667e1__deploy_to_vercel",
+      "mcp__696db54e-bac7-4dd8-b6d0-e7cefe9667e1__list_teams",
+      "mcp__696db54e-bac7-4dd8-b6d0-e7cefe9667e1__list_deployments",
+      "Bash(vercel --prod --yes)",
+      "Bash(gh pr create --title 'feat: home onboarding flow, modal setup, mobile responsive' --body ' *)",
+      "Bash(gh pr *)"
+    ]
+  }
+}

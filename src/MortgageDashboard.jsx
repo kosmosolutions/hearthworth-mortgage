@@ -238,20 +238,20 @@ function TreasuryChartEmbed({ compact = false }) {
       })
       .catch(() => {
         const fallback = [
-          { date: '2015-01', t: 1.88, m: 3.63 }, { date: '2015-07', t: 2.35, m: 4.10 },
-          { date: '2016-01', t: 2.09, m: 3.84 }, { date: '2016-07', t: 1.46, m: 3.21 },
-          { date: '2017-01', t: 2.45, m: 4.20 }, { date: '2017-07', t: 2.32, m: 4.07 },
-          { date: '2018-01', t: 2.55, m: 4.30 }, { date: '2018-07', t: 2.89, m: 4.64 },
-          { date: '2019-01', t: 2.63, m: 4.38 }, { date: '2019-07', t: 2.01, m: 3.76 },
-          { date: '2020-01', t: 1.76, m: 3.51 }, { date: '2020-04', t: 0.60, m: 3.35 },
-          { date: '2020-07', t: 0.58, m: 3.00 }, { date: '2021-01', t: 1.11, m: 2.86 },
-          { date: '2021-07', t: 1.30, m: 2.99 }, { date: '2022-01', t: 1.79, m: 3.54 },
-          { date: '2022-05', t: 2.96, m: 4.71 }, { date: '2022-10', t: 4.01, m: 6.90 },
-          { date: '2023-01', t: 3.54, m: 6.29 }, { date: '2023-07', t: 3.97, m: 6.81 },
-          { date: '2023-10', t: 4.93, m: 7.79 }, { date: '2024-01', t: 3.97, m: 6.72 },
-          { date: '2024-04', t: 4.62, m: 7.02 }, { date: '2024-07', t: 4.19, m: 6.78 },
-          { date: '2024-10', t: 4.28, m: 6.72 }, { date: '2025-01', t: 4.57, m: 6.95 },
-          { date: '2025-05', t: 4.38, m: 6.87 },
+          { date: '2015-01', label: '2015-01', t: 1.88, m: 3.63 }, { date: '2015-07', label: '2015-07', t: 2.35, m: 4.10 },
+          { date: '2016-01', label: '2016-01', t: 2.09, m: 3.84 }, { date: '2016-07', label: '2016-07', t: 1.46, m: 3.21 },
+          { date: '2017-01', label: '2017-01', t: 2.45, m: 4.20 }, { date: '2017-07', label: '2017-07', t: 2.32, m: 4.07 },
+          { date: '2018-01', label: '2018-01', t: 2.55, m: 4.30 }, { date: '2018-07', label: '2018-07', t: 2.89, m: 4.64 },
+          { date: '2019-01', label: '2019-01', t: 2.63, m: 4.38 }, { date: '2019-07', label: '2019-07', t: 2.01, m: 3.76 },
+          { date: '2020-01', label: '2020-01', t: 1.76, m: 3.51 }, { date: '2020-04', label: '2020-04', t: 0.60, m: 3.35 },
+          { date: '2020-07', label: '2020-07', t: 0.58, m: 3.00 }, { date: '2021-01', label: '2021-01', t: 1.11, m: 2.86 },
+          { date: '2021-07', label: '2021-07', t: 1.30, m: 2.99 }, { date: '2022-01', label: '2022-01', t: 1.79, m: 3.54 },
+          { date: '2022-05', label: '2022-05', t: 2.96, m: 4.71 }, { date: '2022-10', label: '2022-10', t: 4.01, m: 6.90 },
+          { date: '2023-01', label: '2023-01', t: 3.54, m: 6.29 }, { date: '2023-07', label: '2023-07', t: 3.97, m: 6.81 },
+          { date: '2023-10', label: '2023-10', t: 4.93, m: 7.79 }, { date: '2024-01', label: '2024-01', t: 3.97, m: 6.72 },
+          { date: '2024-04', label: '2024-04', t: 4.62, m: 7.02 }, { date: '2024-07', label: '2024-07', t: 4.19, m: 6.78 },
+          { date: '2024-10', label: '2024-10', t: 4.28, m: 6.72 }, { date: '2025-01', label: '2025-01', t: 4.57, m: 6.95 },
+          { date: '2025-05', label: '2025-05', t: 4.38, m: 6.87 },
         ]
         setData(fallback); setCurrentYield(4.38); setLoading(false); setError("Using indicative data")
       })
@@ -277,15 +277,25 @@ function TreasuryChartEmbed({ compact = false }) {
           <div className="live-badge"><span className="live-dot"></span>{error ? 'Indicative' : 'Live FRED Data'}</div>
         </div>
         <ResponsiveContainer width="100%" height={h}>
-          <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis dataKey="label" tick={{ fill: 'var(--stone-light)', fontSize: 10, fontFamily: 'var(--fm)' }} stroke="var(--border)" interval={Math.floor((data?.length || 1) / 8)} />
-            <YAxis tick={{ fill: 'var(--stone-light)', fontSize: 10, fontFamily: 'var(--fm)' }} stroke="var(--border)" tickFormatter={v => `${v}%`} domain={[0, 'auto']} />
-            <Tooltip contentStyle={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 10, fontFamily: 'var(--fm)', fontSize: 11, boxShadow: 'var(--shadow-md)' }} formatter={(v, n) => [`${v}%`, n]} />
-            <ReferenceLine y={6.5} stroke="var(--gold)" strokeDasharray="6 3" label={{ value: 'Refi Zone', position: 'insideTopRight', fill: 'var(--gold)', fontSize: 10, fontFamily: 'var(--fm)' }} />
-            <Line type="monotone" dataKey="t" name="10-Yr Treasury" stroke="var(--forest)" strokeWidth={2.5} dot={false} />
-            <Line type="monotone" dataKey="m" name="~30-Yr Mortgage" stroke="var(--gold)" strokeWidth={2} dot={false} strokeOpacity={0.85} />
-          </LineChart>
+          <AreaChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+            <defs>
+              <linearGradient id="gradT" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#1a2e1a" stopOpacity={0.15} />
+                <stop offset="95%" stopColor="#1a2e1a" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="gradM" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#c9a84c" stopOpacity={0.12} />
+                <stop offset="95%" stopColor="#c9a84c" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e8e0d0" />
+            <XAxis dataKey="label" tick={{ fill: '#9e9e8e', fontSize: 10, fontFamily: 'var(--fm)' }} stroke="#e8e0d0" interval={Math.floor((data?.length || 1) / 8)} />
+            <YAxis tick={{ fill: '#9e9e8e', fontSize: 10, fontFamily: 'var(--fm)' }} stroke="#e8e0d0" tickFormatter={v => `${v}%`} domain={[0, 'auto']} />
+            <Tooltip contentStyle={{ background: '#fff', border: '1px solid #e8e0d0', borderRadius: 10, fontFamily: 'var(--fm)', fontSize: 11 }} formatter={(v, n) => [`${v}%`, n]} />
+            <ReferenceLine y={6.5} stroke="#c9a84c" strokeDasharray="6 3" label={{ value: 'Refi Zone', position: 'insideTopRight', fill: '#c9a84c', fontSize: 10, fontFamily: 'var(--fm)' }} />
+            <Area type="monotone" dataKey="m" name="~30-Yr Mortgage" stroke="#c9a84c" strokeWidth={2} fill="url(#gradM)" dot={false} strokeOpacity={0.85} />
+            <Area type="monotone" dataKey="t" name="10-Yr Treasury" stroke="#1a2e1a" strokeWidth={2.5} fill="url(#gradT)" dot={false} />
+          </AreaChart>
         </ResponsiveContainer>
         <div style={{ display: 'flex', gap: 20, marginTop: 14, flexWrap: 'wrap' }}>
           {[["var(--forest)", "10-Yr Treasury Yield"], ["var(--gold)", "~30-Yr Mortgage Rate (est.)"], ["var(--gold)", "Refi Opportunity Zone (<6.5%)", true]].map(([c, l, dashed]) => (
@@ -548,8 +558,8 @@ function HomePage({ onGetStarted, setPage }) {
             </div>
           </div>
           <div className="showcase-row fadein">
-            <div className="showcase-img chart" style={{ background: 'var(--white)', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <TreasuryChartEmbed compact={true} />
+            <div className="showcase-img chart" style={{ overflow: 'hidden', padding: 0 }}>
+              <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=900&q=75" alt="10-Year Treasury yield chart" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>
             <div>
               <div className="showcase-badge">Market Intelligence</div>
